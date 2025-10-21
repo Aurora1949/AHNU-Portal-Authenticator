@@ -39,6 +39,7 @@ void MainWindow::init() {
 
     manager.setProxy(QNetworkProxy::NoProxy);
 
+    ui->statusbar->setSizeGripEnabled(false);
     ui->logoLabel->setPixmap(QPixmap(":/images/banner.png"));
     for (const auto &p: provider)
         ui->providerComboBox->addItem(p.name, p.value);
