@@ -43,6 +43,8 @@ void MainWindow::init() {
     ui->logoLabel->setPixmap(QPixmap(":/images/banner.png"));
     for (const auto &p: provider)
         ui->providerComboBox->addItem(p.name, p.value);
+    ui->comboBoxMode->addItem("模式一", 1);
+    ui->comboBoxMode->addItem("模式二", 2);
     ui->selfStartup->setChecked(isAutoRunEnabled());
 
     trayIcon->setIcon(QIcon(":/images/logo.png"));
@@ -63,6 +65,16 @@ void MainWindow::init() {
     connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) // 单击托盘图标
             onShowFromTray();
+    });
+    connect(ui->pushButtonQ, &QPushButton::clicked, this, [this] {
+        QMessageBox::information(this, "模式说明", ""
+            "模式一：需要购买校园卡，下行网速上限 100Mbps，需要选择正确的运营商。\n\n"
+            "模式二：无需购买校园卡也可使用，下行网速上限 60Mbps，运营商选项在此模式下无效。\n\n"
+            "如何选择？\n"
+            "如果你有校园卡且不想受限于模式二的网速上，建议选择模式一并正确选择运营商；如果你没有校园卡或者不想购买，建议选择模式二。\n\n"
+            "注意（仅高级用户）：\n"
+            "模式一无法在校园内被其他设备访问，模式二则没有这个问题，如果你需要在校园内被其他设备访问（例如远程桌面），建议选择模式二。\n"
+            "模式二无法使用git的ssh方式，如需使用，建议使用https git或选择模式一。");
     });
 }
 
@@ -104,6 +116,7 @@ void MainWindow::setInputEnable(bool enable) {
     ui->usernameLe->setEnabled(enable);
     ui->providerComboBox->setEnabled(enable);
     ui->rememberMe->setEnabled(enable);
+    ui->comboBoxMode->setEnabled(enable);
 }
 
 void MainWindow::saveUserInfo() {
@@ -121,6 +134,7 @@ void MainWindow::saveUserInfo() {
     userInfo["username"] = ui->usernameLe->text();
     userInfo["password"] = ui->passwdLe->text();
     userInfo["provider"] = ui->providerComboBox->currentText();
+    userInfo["mode"] = ui->comboBoxMode->currentText();
 
     // 写入文件
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -149,6 +163,7 @@ void MainWindow::getUserInfo() {
         ui->usernameLe->setText(userInfo.take("username").toString());
         ui->passwdLe->setText(userInfo.take("password").toString());
         ui->providerComboBox->setEditText(userInfo.take("provider").toString());
+        ui->comboBoxMode->setCurrentText(userInfo.take("mode").toString());
         ui->rememberMe->setChecked(true);
     }
 }
@@ -244,9 +259,10 @@ void MainWindow::doLogin() {
         ui->statusbar->showMessage(QString(StatusBarMsg::WaitForProvider).arg(ui->providerComboBox->currentText()));
 
         QUrlQuery query;
-        query.addQueryItem("user_account", ui->usernameLe->text());
+        int mode = ui->comboBoxMode->currentData().toInt();
+        QString account = mode == 1 ? ui->usernameLe->text() + "@" + ui->providerComboBox->currentData().toString(): ui->usernameLe->text();
+        query.addQueryItem("user_account", account);
         query.addQueryItem("user_password", ui->passwdLe->text());
-        query.addQueryItem("provider", ui->providerComboBox->currentData().toString());
         baseUrl.setQuery(query);
 
         request.setUrl(baseUrl);
