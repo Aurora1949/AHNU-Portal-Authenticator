@@ -35,7 +35,7 @@ void MainWindow::init() {
     setWindowTitle("AHNU上号器");
     setWindowIcon(QIcon(":/images/logo.png"));
     setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint & ~Qt::WindowMinimizeButtonHint);
-    setFixedSize(400, 178);
+    setFixedSize(400, 200);
 
     manager.setProxy(QNetworkProxy::NoProxy);
 
@@ -190,6 +190,8 @@ void MainWindow::testOnline() {
 
 void MainWindow::setAutoRun(bool isStart) {
     QString appName = QApplication::applicationName(); // 获取应用名称
+
+#ifdef Q_OS_WIN
     QSettings settings(RegKey, QSettings::NativeFormat); // 创建QSettings对象
 
     if (isStart) {
@@ -199,12 +201,43 @@ void MainWindow::setAutoRun(bool isStart) {
     } else {
         settings.remove(appName); // 从注册表中删除
     }
+#elifdef Q_OS_LINUX
+    QString autostartDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/autostart";
+    QDir dir(autostartDir);
+    if (!dir.exists())
+        dir.mkpath(autostartDir);
+
+    QString desktopFilePath = autostartDir + "/" + appName + ".desktop";
+
+    if (isStart) {
+        QFile desktopFile(desktopFilePath);
+        if (desktopFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            QTextStream out(&desktopFile);
+            out << "[Desktop Entry]\n";
+            out << "Type=Application\n";
+            out << "Exec=" << QApplication::applicationFilePath() << "\n";
+            out << "Icon=ahnu\n";
+            out << "Hidden=false\n";
+            out << "NoDisplay=false\n";
+            out << "X-GNOME-Autostart-enabled=true\n";
+            out << "Name=" << appName << "\n";
+            desktopFile.close();
+        }
+    } else {
+        QFile::remove(desktopFilePath);
+    }
+#endif
 }
 
 bool MainWindow::isAutoRunEnabled() {
+#ifdef Q_OS_WIN
     QSettings settings(RegKey, QSettings::NativeFormat);
     QString appPath = QDir::toNativeSeparators(QApplication::applicationFilePath());
     return settings.value(QApplication::applicationName()).toString().split(" ")[0] == appPath;
+#elifdef Q_OS_LINUX
+    QString desktopFilePath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/autostart/" + QApplication::applicationName() + ".desktop";
+    return QFile::exists(desktopFilePath);
+#endif
 }
 
 void MainWindow::on_selfStartup_checkStateChanged() {
