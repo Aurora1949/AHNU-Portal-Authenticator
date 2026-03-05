@@ -73,13 +73,13 @@
        <number>5</number>
       </property>
       <property name="leftMargin">
-       <number>80</number>
+       <number>60</number>
       </property>
       <property name="topMargin">
        <number>10</number>
       </property>
       <property name="rightMargin">
-       <number>80</number>
+       <number>60</number>
       </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
