@@ -1,0 +1,49 @@
+# GitHub Actions workflow for AHNU-Portal-Authenticator
+# Focuses on Windows-only build and MSI packaging.
+
+name: Windows MSI Build
+
+on:
+  push:
+    branches: [ "test-msi-workflow" ]
+  pull_request:
+    branches: [ "test-msi-workflow" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.*'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          install-deps: 'true'
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cmake --build build --config Release
+
+      - name: Package with CPack (MSI)
+        shell: pwsh
+        run: |
+          cd build
+          cpack -G WIX -C Release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AHNU-Portal-Authenticator-MSI
+          path: build/*.msi
