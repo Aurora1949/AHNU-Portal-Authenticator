@@ -20,12 +20,21 @@ find_package(Qt6 COMPONENTS
         REQUIRED
 )
 
+include_directories(include)
+
 add_executable(${APP_NAME}
         WIN32
         main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+        src/view/mainwindow.cpp
+        include/view/mainwindow.h
+        src/view/mainwindow.ui
+        src/model/auth_service.cpp
+        include/model/auth_service.h
+        src/model/config_manager.cpp
+        include/model/config_manager.h
+        src/controller/app_controller.cpp
+        include/controller/app_controller.h
+        include/common/constants.h
         res.qrc
         ${app_icon_resource_windows}
 )

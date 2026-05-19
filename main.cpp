@@ -1,8 +1,7 @@
-#include "mainwindow.h"
-
+#include "controller/app_controller.h"
 #include <QApplication>
-#include <QLocalSocket>
 #include <QLocalServer>
+#include <QLocalSocket>
 
 bool isAlreadyRunning() {
     QLocalSocket socket;
@@ -29,8 +28,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    MainWindow w;
-    w.show();
+    AppController controller;
+    controller.start();
 
     // 建立本地 server
     QLocalServer server;
@@ -40,16 +39,19 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(&server, &QLocalServer::newConnection, [&]() {
         QLocalSocket *client = server.nextPendingConnection();
-        if (!client) return;
+        if (!client) {
+            return;
+        }
 
         QObject::connect(client, &QLocalSocket::readyRead, [&]() {
             QByteArray msg = client->readAll();
             if (msg == "raise") {
-                w.showFromTray();
+                controller.raiseView();
             }
         });
 
-        QObject::connect(client, &QLocalSocket::disconnected, client, &QLocalSocket::deleteLater);
+        QObject::connect(client, &QLocalSocket::disconnected, client,
+                         &QLocalSocket::deleteLater);
     });
 
     return a.exec();
