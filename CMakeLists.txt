@@ -48,6 +48,45 @@ target_link_libraries(${APP_NAME}
         Qt::Network
 )
 
+# --- Packaging Configuration ---
+if (WIN32)
+    set(CPACK_PACKAGE_NAME "AHNU-Portal-Authenticator")
+    set(CPACK_PACKAGE_VENDOR "AHNU")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AHNU Portal Authenticator")
+    set(CPACK_PACKAGE_VERSION "1.0.0")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "AHNU Portal Authenticator")
+    
+    # MSI specific settings
+    set(CPACK_GENERATOR "WIX")
+    set(CPACK_WIX_UPGRADE_GUID "D672E15C-3D2F-4E9D-A92B-E5497A81A4B0") # Example GUID
+    set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/images/app.ico")
+    
+    # Executable and Start Menu Shortcut
+    install(TARGETS ${APP_NAME} RUNTIME DESTINATION bin)
+    
+    # Shortcuts and Menu
+    set(CPACK_PACKAGE_EXECUTABLES "${APP_NAME}" "AHNU Portal Authenticator")
+    set(CPACK_CREATE_DESKTOP_LINKS "${APP_NAME}")
+    set(CPACK_WIX_PROGRAM_MENU_FOLDER "AHNU")
+
+    # Install Qt dependencies
+    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
+    
+    if (WINDEPLOYQT_EXECUTABLE)
+        install(CODE "
+            execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" 
+                            --release 
+                            --no-translations 
+                            --compiler-runtime 
+                            \"\${CMAKE_INSTALL_PREFIX}/bin/${APP_NAME}.exe\")
+        ")
+    endif ()
+    
+    include(CPack)
+endif ()
+
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
