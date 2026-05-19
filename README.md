@@ -2,7 +2,7 @@
 
 **AHNU Portal Authenticator** 是一个为 **安徽师范大学校园网（AHNU）** 设计的轻量级网络认证工具，
 实现了登录与在线状态维持。支持 **开机自启**、**后台运行**、**实时在线检测**， 让校园网登录更加稳定、无感、安全。
-本项目受到此[项目]('https://github.com/SweetCaviar/AHNU-Network-Automatic-Csharp')的启发应运而生。
+本项目受到此[项目](https://github.com/SweetCaviar/AHNU-Network-Automatic-Csharp)的启发应运而生。
 
 ---
 
